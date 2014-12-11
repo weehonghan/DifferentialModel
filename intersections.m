@@ -205,7 +205,7 @@ if robust
 		lastwarn('')
 		for k = 1:n
 			T(:,k) = AA(:,:,k)\B(:,k);
-			[unused,last_warn] = lastwarn;
+			[~,last_warn] = lastwarn;
 			lastwarn('')
 			if strcmp(last_warn,'MATLAB:singularMatrix')
 				% Force in_range(k) to be false.

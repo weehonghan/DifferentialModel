@@ -1,4 +1,4 @@
-function [fitresult, gof] = createFit(RPM, Torque)
+function [fitresult, gof] = FitCurve(RPM, Torque)
 %CREATEFIT(RPM,TORQUE)
 %  Create a fit.
 %
