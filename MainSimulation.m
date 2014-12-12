@@ -1,35 +1,4 @@
 %% Data Initialization
-rows = size(details, 1);
-corners = rows - sum(details(:,1));
-
-numSections = sum(details(:,2));
-numSegments = (numSections / segmentLength) + 1 ;
-
-SegmentNumber = zeros(numSegments, 1);
-Radius = zeros(numSegments, 1);
-MaxVelocity = zeros(numSegments, 1);
-Velocity = zeros(numSegments, 1);
-Gear = zeros(numSegments, 1);
-Acceleration = zeros(numSegments, 1);
-Torque = zeros(numSegments, 1);
-TractiveForce = zeros(numSegments, 1);
-ShiftTimeRemain = zeros(numSegments, 1);
-SegmentTime = zeros(numSegments, 1);
-AccumulatedTime = zeros(numSegments, 1);
-Distance = zeros(numSegments, 1);
-
-accumulatedSegment = segmentLength;
-segmentIndex = 1;
-
-% Initialize Launch Condition
-SegmentNumber(1) = 1;
-Radius(1) = 999999;
-MaxVelocity(1) = CarMaxVel;
-Velocity(1) = LaunchVel;
-Gear(1) = LaunchGear;
-Acceleration(1) = 9.81; %Assume 1g accerlation **doesnt really matters
-Velocity(2) = LaunchVel;
-
 % Initialize Segment Number and Radius
 for i = 2:numSegments
     SegmentNumber(i) = i;
@@ -37,7 +6,7 @@ for i = 2:numSegments
         segmentIndex = segmentIndex + 1;
         accumulatedSegment = segmentLength;
     end
-    Radius(i) = details(segmentIndex, 3); %#ok<*SAGROW>
+    Radius(i) = details(segmentIndex, 3);
     accumulatedSegment = accumulatedSegment + segmentLength;
 end
 
@@ -87,8 +56,49 @@ for j = 2:numSegments
     end
 end
 
-%% Maximum speed assignment
+%% Shifting (Input)
+UpShiftVelMat=[GearOnetoTwo, GearTwotoThree, GearThreetoFour, GearFourtoFive, GearFivetoSix, 9999];
+DownShiftVelMat=[-9999, GearTwotoOne, GearThreetoTwo, GearFourtoThree, GearFivetoFour, GearSixtoFive];
+CurrentGear = Gear(1);
+CurrentUpShiftVel= UpShiftVelMat(CurrentGear);
+CurrentDownShiftVel= DownShiftVelMat(CurrentGear);
 
+%% Calculate Car Max Speed
+% *****Not A robust logic to calculate vehicle max speed*****
+% Doesnt take into account high drag car with max speed of < 50km/hr but good enough for most of our cars
+AeroDrag= DragCoefficient*(AeroVel/3.6).^2;
+DragForceCurve= FitCurve(AeroVel,AeroDrag);
+
+if(DragCoefficient==0)
+    CarMaxVel= max(Gear6Velocity);
+else
+    if DragForceCurve(max(Gear6Velocity)) < Gear6ForceCurve(max(Gear6Velocity))
+        AeroMaxVel(1) = max(Gear6Velocity);
+    else
+        AeroMaxVel(1) = max(intersections(Gear6Velocity,Gear6Force,AeroVel,AeroDrag,1));
+    end
+    if DragForceCurve(max(Gear5Velocity)) < Gear5ForceCurve(max(Gear5Velocity))
+        AeroMaxVel(2) = max(Gear5Velocity);
+    else
+        AeroMaxVel(2) = max(intersections(Gear5Velocity,Gear5Force,AeroVel,AeroDrag,1));
+    end
+    if DragForceCurve(max(Gear4Velocity)) < Gear4ForceCurve(max(Gear4Velocity))
+        AeroMaxVel(3) = max(Gear4Velocity);
+    else
+        AeroMaxVel(3) = max(intersections(Gear4Velocity,Gear4Force,AeroVel,AeroDrag,1));
+    end
+    if DragForceCurve(max(Gear3Velocity)) < Gear3ForceCurve(max(Gear3Velocity))
+        AeroMaxVel(4) = max(Gear3Velocity);
+    else
+        AeroMaxVel(4) = max(intersections(Gear3Velocity,Gear3Force,AeroVel,AeroDrag,1));
+    end
+end
+CarMaxVel = max(AeroMaxVel);
+
+syms velocity;
+syms velocity1;
+
+%% Maximum speed assignment
 PreviousVelStore=0;
 for i=1:corners
     
@@ -136,8 +146,7 @@ for iSegment = 2:numSegments-1
         else
             ShiftTimeRemain(iSegment) = 0;
         end
-        
-        
+                
         if(Velocity(iSegment)<= CurrentDownShiftVel && Velocity(iSegment-1) > CurrentDownShiftVel) %DownShifitng criteria
             CurrentGear = CurrentGear-1;
             CurrentUpShiftVel= UpShiftVelMat(CurrentGear);

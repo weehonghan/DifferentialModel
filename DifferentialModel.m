@@ -18,10 +18,6 @@ CarMaxVel = 0;% Might be Able to remove this. This is for declaration only. Do n
 AeroVel = 0: 10 : 140;
 AeroMaxVel = zeros(4,1);
 
-% Initial Conditions *****Need more study on this***** (Input)
-LaunchVel = 50;
-LaunchGear = 2;
-
 % Brakes Efficency(Input)
 %Because this is a point particle simulation, This is to take into account
 %the reduction in braking due to load transfer
@@ -136,48 +132,6 @@ else
     GearFivetoSix = max(intersections(Gear5Velocity,Gear5Force,Gear6Velocity,Gear6Force,1));
     GearSixtoFive = max(intersections(Gear5Velocity,Gear5Force,Gear6Velocity,Gear6Force,1));
 end
-
-%% Shifting (Input)
-UpShiftVelMat=[GearOnetoTwo, GearTwotoThree, GearThreetoFour, GearFourtoFive, GearFivetoSix, 9999];
-DownShiftVelMat=[-9999, GearTwotoOne, GearThreetoTwo, GearFourtoThree, GearFivetoFour, GearSixtoFive];
-CurrentGear =LaunchGear;
-CurrentUpShiftVel= UpShiftVelMat(CurrentGear);
-CurrentDownShiftVel= DownShiftVelMat(CurrentGear);
-
-%% Calculate Car Max Speed
-% *****Not A robust logic to calculate vehicle max speed*****
-% Doesnt take into account high drag car with max speed of < 50km/hr but good enough for most of our cars
-AeroDrag= DragCoefficient*(AeroVel/3.6).^2;
-DragForceCurve= FitCurve(AeroVel,AeroDrag);
-
-if(DragCoefficient==0)
-    CarMaxVel= max(Gear6Velocity);
-else
-    if DragForceCurve(max(Gear6Velocity)) < Gear6ForceCurve(max(Gear6Velocity))
-        AeroMaxVel(1) = max(Gear6Velocity);
-    else
-        AeroMaxVel(1) = max(intersections(Gear6Velocity,Gear6Force,AeroVel,AeroDrag,1));
-    end
-    if DragForceCurve(max(Gear5Velocity)) < Gear5ForceCurve(max(Gear5Velocity))
-        AeroMaxVel(2) = max(Gear5Velocity);
-    else
-        AeroMaxVel(2) = max(intersections(Gear5Velocity,Gear5Force,AeroVel,AeroDrag,1));
-    end
-    if DragForceCurve(max(Gear4Velocity)) < Gear4ForceCurve(max(Gear4Velocity))
-        AeroMaxVel(3) = max(Gear4Velocity);
-    else
-        AeroMaxVel(3) = max(intersections(Gear4Velocity,Gear4Force,AeroVel,AeroDrag,1));
-    end
-    if DragForceCurve(max(Gear3Velocity)) < Gear3ForceCurve(max(Gear3Velocity))
-        AeroMaxVel(4) = max(Gear3Velocity);
-    else
-        AeroMaxVel(4) = max(intersections(Gear3Velocity,Gear3Force,AeroVel,AeroDrag,1));
-    end
-end
-CarMaxVel = max(AeroMaxVel);
-
-syms velocity;
-syms velocity1;
 
 %% Running Program
 run AccelerationInitialization
