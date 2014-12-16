@@ -1,3 +1,38 @@
+%% Calculate Car Max Speed
+% *****Not A robust logic to calculate vehicle max speed*****
+% Doesnt take into account high drag car with max speed of < 50km/hr but good enough for most of our cars
+AeroDrag = DragCoefficient * (AeroVel/3.6).^2;
+DragForceCurve= FitCurve(AeroVel,AeroDrag);
+
+if(DragCoefficient==0)
+    CarMaxVel= max(Gear6Velocity);
+else
+    if DragForceCurve(max(Gear6Velocity)) < Gear6ForceCurve(max(Gear6Velocity))
+        AeroMaxVel(1) = max(Gear6Velocity);
+    else
+        AeroMaxVel(1) = max(intersections(Gear6Velocity,Gear6Force,AeroVel,AeroDrag,1));
+    end
+    if DragForceCurve(max(Gear5Velocity)) < Gear5ForceCurve(max(Gear5Velocity))
+        AeroMaxVel(2) = max(Gear5Velocity);
+    else
+        AeroMaxVel(2) = max(intersections(Gear5Velocity,Gear5Force,AeroVel,AeroDrag,1));
+    end
+    if DragForceCurve(max(Gear4Velocity)) < Gear4ForceCurve(max(Gear4Velocity))
+        AeroMaxVel(3) = max(Gear4Velocity);
+    else
+        AeroMaxVel(3) = max(intersections(Gear4Velocity,Gear4Force,AeroVel,AeroDrag,1));
+    end
+    if DragForceCurve(max(Gear3Velocity)) < Gear3ForceCurve(max(Gear3Velocity))
+        AeroMaxVel(4) = max(Gear3Velocity);
+    else
+        AeroMaxVel(4) = max(intersections(Gear3Velocity,Gear3Force,AeroVel,AeroDrag,1));
+    end
+end
+CarMaxVel = max(AeroMaxVel);
+
+syms velocity;
+syms velocity1;
+
 %% Data Initialization
 % Initialize Segment Number and Radius
 for i = 2:numSegments
@@ -63,41 +98,6 @@ CurrentGear = Gear(1);
 CurrentUpShiftVel= UpShiftVelMat(CurrentGear);
 CurrentDownShiftVel= DownShiftVelMat(CurrentGear);
 
-%% Calculate Car Max Speed
-% *****Not A robust logic to calculate vehicle max speed*****
-% Doesnt take into account high drag car with max speed of < 50km/hr but good enough for most of our cars
-AeroDrag= DragCoefficient*(AeroVel/3.6).^2;
-DragForceCurve= FitCurve(AeroVel,AeroDrag);
-
-if(DragCoefficient==0)
-    CarMaxVel= max(Gear6Velocity);
-else
-    if DragForceCurve(max(Gear6Velocity)) < Gear6ForceCurve(max(Gear6Velocity))
-        AeroMaxVel(1) = max(Gear6Velocity);
-    else
-        AeroMaxVel(1) = max(intersections(Gear6Velocity,Gear6Force,AeroVel,AeroDrag,1));
-    end
-    if DragForceCurve(max(Gear5Velocity)) < Gear5ForceCurve(max(Gear5Velocity))
-        AeroMaxVel(2) = max(Gear5Velocity);
-    else
-        AeroMaxVel(2) = max(intersections(Gear5Velocity,Gear5Force,AeroVel,AeroDrag,1));
-    end
-    if DragForceCurve(max(Gear4Velocity)) < Gear4ForceCurve(max(Gear4Velocity))
-        AeroMaxVel(3) = max(Gear4Velocity);
-    else
-        AeroMaxVel(3) = max(intersections(Gear4Velocity,Gear4Force,AeroVel,AeroDrag,1));
-    end
-    if DragForceCurve(max(Gear3Velocity)) < Gear3ForceCurve(max(Gear3Velocity))
-        AeroMaxVel(4) = max(Gear3Velocity);
-    else
-        AeroMaxVel(4) = max(intersections(Gear3Velocity,Gear3Force,AeroVel,AeroDrag,1));
-    end
-end
-CarMaxVel = max(AeroMaxVel);
-
-syms velocity;
-syms velocity1;
-
 %% Maximum speed assignment
 PreviousVelStore=0;
 for i=1:corners
@@ -146,7 +146,7 @@ for iSegment = 2:numSegments-1
         else
             ShiftTimeRemain(iSegment) = 0;
         end
-                
+        
         if(Velocity(iSegment)<= CurrentDownShiftVel && Velocity(iSegment-1) > CurrentDownShiftVel) %DownShifitng criteria
             CurrentGear = CurrentGear-1;
             CurrentUpShiftVel= UpShiftVelMat(CurrentGear);
@@ -174,7 +174,12 @@ for iSegment = 2:numSegments-1
         
     else %Acceleration
         %CalculateSegmentTime and Remaining Shift Time
-        SegmentTime(iSegment)= 2*segmentLength/((Velocity(iSegment)/3.6)+(Velocity(iSegment-1)/3.6));
+        if Velocity(iSegment) == 0
+            SegmentTime(iSegment) = 0;
+        else
+            SegmentTime(iSegment) = 2*segmentLength/((Velocity(iSegment)/3.6)+(Velocity(iSegment-1)/3.6));
+        end
+        
         %Acceleration
         %% Shifting
         if ShiftTimeRemain(iSegment-1) > 0 %If there is remaining Shift time
@@ -237,21 +242,19 @@ for iSegment = 2:numSegments-1
     
 end
 
-%%Ending Conditions
-
+%% Ending Conditions
 if Velocity(numSegments) >= MaxVelocity(numSegments)
-    %Decelerate Accordingly to maxVelocity
+    % Decelerate Accordingly to maxVelocity
     Velocity(numSegments)=MaxVelocity(numSegments);
-    %CalculateSegmentTime and Remaining Shift Time
+    % CalculateSegmentTime and Remaining Shift Time
     SegmentTime(numSegments) = 2*segmentLength/((Velocity(numSegments)/3.6)+(Velocity(numSegments-1)/3.6));
     
     %% Shifting
-    if ShiftTimeRemain(numSegments-1) > 0 %If there is remaining Shift time
+    if ShiftTimeRemain(numSegments-1) > 0 % If there is remaining Shift time
         ShiftTimeRemain(numSegments) = ShiftTimeRemain(numSegments-1) - SegmentTime(numSegments);
     else
         ShiftTimeRemain(numSegments) = 0;
     end
-    
     
     if(Velocity(numSegments)<= CurrentDownShiftVel && Velocity(numSegments-1) > CurrentDownShiftVel) %DownShifitng criteria
         CurrentGear = CurrentGear-1;
@@ -267,7 +270,6 @@ if Velocity(numSegments) >= MaxVelocity(numSegments)
     
     %Log current gear
     Gear(numSegments)=CurrentGear;
-    
     
     %Calculating  current acceleration
     Acceleration(numSegments) = Acceleration(numSegments-1);
