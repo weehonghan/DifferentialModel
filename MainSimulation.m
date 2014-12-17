@@ -30,9 +30,6 @@ else
 end
 CarMaxVel = max(AeroMaxVel);
 
-syms velocity;
-syms velocity1;
-
 %% Data Initialization
 % Initialize Segment Number and Radius
 for i = 2:numSegments
@@ -86,8 +83,6 @@ for j = 2:numSegments
     else
         MaxVelocity(j) = 3.6 * vpasolve(-TotalMass*velocity^2/Radius(j) + muLat*(TotalMass*9.814 + LiftCoefficient * ...
             velocity^2),velocity,[0 150]);
-        %Lap(j, 3) = 3.6 * vpasolve(-TotalMass*Velocity^2/Lap(j, 2) + muLat*(TotalMass*9.814 + LiftCoefficient * ...
-        %Velocity^2),Velocity,Lap(j-1, 3));
     end
 end
 
@@ -98,10 +93,9 @@ CurrentGear = Gear(1);
 CurrentUpShiftVel= UpShiftVelMat(CurrentGear);
 CurrentDownShiftVel= DownShiftVelMat(CurrentGear);
 
-%% Maximum speed assignment
-PreviousVelStore=0;
-for i=1:corners
-    
+%% Maximum Speed Assignment
+PreviousVelStore = 0;
+for i = 1: corners
     CornerEntryIndex = CornerEntryMat(i,1);
     
     while (MaxVelocity(CornerEntryIndex) < CarMaxVel) && (CornerEntryIndex>2)
@@ -110,34 +104,21 @@ for i=1:corners
             (9.814+LiftCoefficient*(velocity1)^2)*muLat))^2)^0.5) * (TotalMass*9.814 + LiftCoefficient * ...
             (velocity1)^2) + DragCoefficient * (velocity1)^2)/TotalMass),(MaxVelocity(CornerEntryIndex)/3.6));
         if PreviousVelStore <  MaxVelocity(CornerEntryIndex-1)
-            MaxVelocity(CornerEntryIndex-1) = PreviousVelStore;
-            
+            MaxVelocity(CornerEntryIndex-1) = PreviousVelStore;     
         else
             break
         end
-        %a= F/TotalMass;
-        %F = FrictionLong * (TotalMass*9.814 + LiftCoefficient * (Velocity1)^2) + DragCoefficient * (Velocity1)^2;
-        %FrictionLong = muLong*(1-((Velocity1)^2/(Lap(CornerEntryIndex,2)*(9.814+LiftCoefficient*(Velocity1)^2)*muLat))^2)^0.5;
-        
-        %F = (muLong*(1-((Velocity1)^2/(Lap(CornerEntryIndex,2)*(9.814+LiftCoefficient*(Velocity1)^2)*muLat))^2)^0.5) * ...
-        %(TotalMass*9.814 + LiftCoefficient * (Velocity1)^2) + DragCoefficient * (Velocity1)^2;
-        %a= ((muLong*(1-((Velocity1)^2/(Lap(CornerEntryIndex,2)*(9.814+LiftCoefficient*(Velocity1)^2)*muLat))^2)^0.5) * ...
-        %(TotalMass*9.814 + LiftCoefficient * (Velocity1)^2) + DragCoefficient * (Velocity1)^2)/TotalMass;
-        %Lap(CornerEntryIndex-1,3)= vpasolve(-Velocity1^2 + (Lap(CornerEntryIndex,3))^2 + 2*SegmentLength* ...
-        %(((muLong*(1-((Velocity1)^2/(Lap(CornerEntryIndex,2)*(9.814+LiftCoefficient*(Velocity1)^2)*muLat))^2)^0.5) * ...
-        %(TotalMass*9.814 + LiftCoefficient * (Velocity1)^2) + DragCoefficient * (Velocity1)^2)/TotalMass);
-        
+               
         CornerEntryIndex= CornerEntryIndex-1;
-        
     end
 end
 
 %% Main Simulation
-for iSegment = 2:numSegments-1
+for iSegment = 2: numSegments-1
     if Velocity(iSegment) >= MaxVelocity(iSegment)
-        %Decelerate Accordingly to maxVelocity
+        % Decelerate Accordingly to maxVelocity
         Velocity(iSegment)=MaxVelocity(iSegment);
-        %CalculateSegmentTime and Remaining Shift Time
+        % CalculateSegmentTime and Remaining Shift Time
         SegmentTime(iSegment) = 2*segmentLength/((Velocity(iSegment)/3.6)+(Velocity(iSegment-1)/3.6));
         
         %% Shifting
@@ -172,17 +153,16 @@ for iSegment = 2:numSegments-1
         Acceleration(iSegment) = ((Velocity(iSegment+1)/3.6)^2 -  (Velocity(iSegment)/3.6)^2)/(2*segmentLength);
         TractiveForce(iSegment) = TotalMass*Acceleration(iSegment);
         
-    else %Acceleration
-        %CalculateSegmentTime and Remaining Shift Time
+    else % Acceleration
+        % Calculate Segment Time and Remaining Shift Time
         if Velocity(iSegment) == 0
             SegmentTime(iSegment) = 0;
         else
             SegmentTime(iSegment) = 2*segmentLength/((Velocity(iSegment)/3.6)+(Velocity(iSegment-1)/3.6));
         end
         
-        %Acceleration
         %% Shifting
-        if ShiftTimeRemain(iSegment-1) > 0 %If there is remaining Shift time
+        if ShiftTimeRemain(iSegment-1) > 0 % If there is remaining Shift time
             ShiftTimeRemain(iSegment) = ShiftTimeRemain(iSegment-1) - SegmentTime(iSegment);
         else
             ShiftTimeRemain(iSegment) = 0;
@@ -200,10 +180,10 @@ for iSegment = 2:numSegments-1
             ShiftTimeRemain(iSegment)=ShiftTime;
         end
         
-        %Log current gear
+        % Log current gear
         Gear(iSegment)=CurrentGear;
         
-        %Calculate and log engine force
+        % Calculate and log engine force
         switch(CurrentGear)
             case 1
                 Torque(iSegment)=Gear1ForceCurve(Velocity(iSegment));
@@ -219,12 +199,12 @@ for iSegment = 2:numSegments-1
                 Torque(iSegment)=Gear6ForceCurve(Velocity(iSegment));
         end
         
-        %Calculate avaliable tractive force
+        % Calculate avaliable tractive force
         TractiveForce(iSegment) = ((muLong)*(1-(((Velocity(iSegment)/3.6)^4)/(Radius(iSegment)* ...
             (9.81+LiftCoefficient*((Velocity(iSegment)/3.6)^2)/TotalMass))^2/muLat^2)^0.5) * ...
             (TotalMass*9.814*WeightBiasRear + LiftCoefficient*((Velocity(iSegment)/3.6)^2)*AeroBalance));
         
-        %Calculate Acceleration
+        % Calculate Acceleration
         if ShiftTimeRemain(iSegment)>0
             Acceleration(iSegment) = 0;
         elseif TractiveForce(iSegment)>= Torque(iSegment)
@@ -233,13 +213,12 @@ for iSegment = 2:numSegments-1
             Acceleration(iSegment) = (TractiveForce(iSegment)-DragCoefficient*(Velocity(iSegment)/3.6)^2)/TotalMass;
         end
         
-        %Calculate next velocity
+        % Calculate next velocity
         Velocity(iSegment+1) = ((((Velocity(iSegment)/3.6)^2)+2*Acceleration(iSegment)*segmentLength)^0.5)*3.6;
     end
     
     AccumulatedTime(iSegment)= AccumulatedTime(iSegment-1)+SegmentTime(iSegment);
     Distance(iSegment)= (SegmentNumber(iSegment)-1)*segmentLength;
-    
 end
 
 %% Ending Conditions
@@ -346,8 +325,7 @@ title(sprintf('%s Figure 2', track))
 xlabel('Distance')
 ylabel('CurrentVelocity')
 
-% Save To Excel
-ExportFileName = 'TransmissionModelResults.xlsx';
+%% Save To Excel
 xlswrite(ExportFileName, SegmentNumber, track, 'A2');
 xlswrite(ExportFileName, Radius, track, 'B2');
 xlswrite(ExportFileName, MaxVelocity, track, 'C2');
