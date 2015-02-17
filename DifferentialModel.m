@@ -1,6 +1,6 @@
 %% Import Data
-EngineRPM = xlsread('R14EngineTorqueCurve.xlsx','Sheet1','A1:A87');
-EngineTorque = xlsread('R14EngineTorqueCurve.xlsx','Sheet1','B1:B87');
+EngineRPM = xlsread('R15EngineTorqueCurve.xlsx','Sheet1','A1:A100');
+EngineTorque = xlsread('R15EngineTorqueCurve.xlsx','Sheet1','B1:B100');
 
 %% Program Variables
 format long g
@@ -41,7 +41,9 @@ CarToConeClearance = 0.6;
 AvaliableMovement = RaceTrackWidth - CarTrackWidth - 2*CarToConeClearance;
 
 % Gear Ratios
-FDR = 3.27;
+FrontSprocketTeeth = 11;
+RearSprocketTeeth = 36;
+FDR = RearSprocketTeeth/FrontSprocketTeeth;
 TotalGearRatio1 = FDR * 5.806;
 TotalGearRatio2 = FDR * 4.222;
 TotalGearRatio3 = FDR * 3.519;
@@ -49,7 +51,7 @@ TotalGearRatio4 = FDR * 3.049;
 TotalGearRatio5 = FDR * 2.754;
 TotalGearRatio6 = FDR * 2.551;
 DriveLineEff = 0.9;
-ShiftTime = 0.3;
+ShiftTime = 0.2;
 
 % Tire Parameters
 TireRadius = 0.2286;
