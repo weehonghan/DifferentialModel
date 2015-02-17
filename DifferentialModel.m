@@ -1,6 +1,6 @@
 %% Import Data
-EngineRPM = xlsread('R15EngineTorqueCurve.xlsx','Sheet1','A1:A100');
-EngineTorque = xlsread('R15EngineTorqueCurve.xlsx','Sheet1','B1:B100');
+EngineRPM = xlsread('R15EngineTorqueCurve.xlsx','Sheet1','A1:A74');
+EngineTorque = xlsread('R15EngineTorqueCurve.xlsx','Sheet1','B1:B74');
 
 %% Program Variables
 format long g
