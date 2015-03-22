@@ -16,6 +16,7 @@ ShiftTimeRemain = zeros(numSegments, 1);
 SegmentTime = zeros(numSegments, 1);
 AccumulatedTime = zeros(numSegments, 1);
 Distance = zeros(numSegments, 1);
+ClutchTorque = zeros(numSegments, 1);
 
 accumulatedSegment = segmentLength;
 segmentIndex = 1;

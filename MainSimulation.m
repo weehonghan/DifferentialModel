@@ -115,7 +115,8 @@ end
 
 %% Main Simulation
 for iSegment = 2: numSegments-1
-    if Velocity(iSegment) >= MaxVelocity(iSegment)
+    
+     if Velocity(iSegment) >= MaxVelocity(iSegment)
         % Decelerate Accordingly to maxVelocity
         Velocity(iSegment)=MaxVelocity(iSegment);
         % CalculateSegmentTime and Remaining Shift Time
@@ -203,6 +204,11 @@ for iSegment = 2: numSegments-1
         TractiveForce(iSegment) = ((muLong)*(1-(((Velocity(iSegment)/3.6)^4)/(Radius(iSegment)* ...
             (9.81+LiftCoefficient*((Velocity(iSegment)/3.6)^2)/TotalMass))^2/muLat^2)^0.5) * ...
             (TotalMass*9.814*WeightBiasRear + LiftCoefficient*((Velocity(iSegment)/3.6)^2)*AeroBalance));
+        
+        % Differential Calculations
+        ForcePressureRing = Torque(iSegment)/PressureRingRadius;                    % Unit = N
+        LateralForcePressureRing = tand(90-PowerAngle)*ForcePressureRing/2;         % Unit = N
+        ClutchTorque(iSegment) = N*CoFPlates*LateralForcePressureRing*EffectiveRadius;  
         
         % Calculate Acceleration
         if ShiftTimeRemain(iSegment)>0
@@ -333,8 +339,9 @@ xlswrite(ExportFileName, Velocity, track, 'D2');
 xlswrite(ExportFileName, Gear, track, 'E2');
 xlswrite(ExportFileName, Acceleration, track, 'F2');
 xlswrite(ExportFileName, Torque, track, 'G2');
-xlswrite(ExportFileName, TractiveForce, track, 'H2');
-xlswrite(ExportFileName, ShiftTimeRemain, track, 'I2');
-xlswrite(ExportFileName, SegmentTime, track, 'J2');
-xlswrite(ExportFileName, AccumulatedTime, track, 'K2');
-xlswrite(ExportFileName, Distance, track, 'L2');
+xlswrite(ExportFileName, ClutchTorque, track, 'H2');
+xlswrite(ExportFileName, TractiveForce, track, 'I2');
+xlswrite(ExportFileName, ShiftTimeRemain, track, 'J2');
+xlswrite(ExportFileName, SegmentTime, track, 'K2');
+xlswrite(ExportFileName, AccumulatedTime, track, 'L2');
+xlswrite(ExportFileName, Distance, track, 'M2');

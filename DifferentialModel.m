@@ -8,12 +8,39 @@ segmentLength = 0.1;
 ExportFileName = 'TransmissionModelResults.xlsx';
 
 %% Major Car Parameters
-CarMass = 203; %KG
+Gravity = 9.81;
+CarMass = 197; %KG
 DriverMass = 67; %KG
 AeroMass = 10; %KG
 TotalMass = CarMass + DriverMass +AeroMass;
 WeightBiasFront = 0.45;   %*****In progress***** Need to understand Tire load sensitivity and  how C.G location affections it
 WeightBiasRear = 1 - WeightBiasFront; %*****In progress***** Need to understand Tire load sensitivity and  how C.G location affections it
+
+CoFRoad = 0.7;
+WheelRadius = 9*25.4;       % Unit = mm
+
+RLNormalLoad = CarMass/4; % Unit = kg         ***FUNCTION OF LOAD TRANSFERS, NOT A CONSTANT***
+RRNormalLoad = CarMass/4; % Unit = kg         ***FUNCTION OF LOAD TRANSFERS, NOT A CONSTANT***
+
+RLTractionLimit = RLNormalLoad*Gravity*CoFRoad;
+RRTractionLimit = RRNormalLoad*Gravity*CoFRoad;
+
+RLGroundTorque = RLTractionLimit*WheelRadius/1000;  % Unit = Nm
+RRGroundTorque = RRTractionLimit*WheelRadius/1000;  % Unit = Nm
+
+CGHeight = 31;              % Unit = mm
+%Wheelbase = 1210;           % Unit = mm
+RearTrackWidth = 1190;      % Unit = mm
+%b = 400;                    % Unit = mm
+%c = 595;                    % Unit = mm
+TireRadius = 254;           % Unit = mm
+
+             % Unit = m/s^2
+%a = Wheelbase - b;          % Unit = mm
+%d = RearTrackWidth - c;     % Unit = mm
+
+% RearSlipAngle?
+% LatForce
 
 % AeroDynamics
 LiftCoefficient = 0.1;
@@ -62,6 +89,36 @@ muLong = muLong2 - 0.084*TotalMass/2*9.81*10^-3; %Tire load sensitivity **** Nee
 muLat = muLat2 - 0.084*TotalMass/2*9.81*10^-3;  %Tire load sensitivity **** Need more study on this****
 % Current Value is assume a Lat g of 1.38
 
+%% Differential Inputs
+PowerAngle = 45;        % Unit = Degrees
+CoastingAngle = 60;     % Unit = Degrees
+PreloadTorque = 15;     % Unit = Nm
+PressureRingRadius = 0.037594;  % Unit = m
+
+N = 5;
+CoFPlates = 0.16; % From http://www.engineeringtoolbox.com/friction-coefficients-d_778.html
+EffectiveRadius = 0.032995322;      % Unit = m
+
+
+%% Belleville Spring Initialization
+% http://www.mitcalc.com/doc/springs/help/en/springs.htm
+InnerDiameter = 46;         % Unit = mm
+OuterDiameter = 75.8;       % Unit = mm
+YoungModulus = 207;         % Unit = GPa
+PoissonRatio = 0.3;     
+DiscHeight = 3.3;           % Unit = mm
+MaterialThickness = 1.6;    % Unit = mm
+SpringDeflection = 1.7;     % Unit = mm
+InsideHeight = DiscHeight-MaterialThickness;        % Unit = mm
+DiameterRatio = OuterDiameter/InnerDiameter;
+ShapeCoeff1 = (1/pi)*(((DiameterRatio-1)/DiameterRatio)^2/(((DiameterRatio+1)/(DiameterRatio-1))-(2/log(DiameterRatio))));
+ShapeCoeff2 = (6/pi)*((((DiameterRatio-1)/log(DiameterRatio))-1)/(log(DiameterRatio)));
+ShapeCoeff3 = (3/pi)*((DiameterRatio-1)/log(DiameterRatio));
+
+MaxSpringForce = ((4*YoungModulus*10^3)/(1-PoissonRatio^2))*((MaterialThickness^3*SpringDeflection)/(ShapeCoeff1*OuterDiameter^2))...
+                    *((InsideHeight/MaterialThickness-SpringDeflection/MaterialThickness)*(InsideHeight/MaterialThickness-SpringDeflection/...
+                    2*MaterialThickness)+1);        % Unit = N
+                
 %% Drive Velocity at different gears
 Gear1Velocity = EngineRPM * 2 * pi / 60 / TotalGearRatio1 * TireRadius * 3.6;
 Gear2Velocity = EngineRPM * 2 * pi / 60 / TotalGearRatio2 * TireRadius * 3.6;

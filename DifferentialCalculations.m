@@ -39,7 +39,7 @@ CoFRoad = 0.7;
 FDR = RearSprocketTeeth/FrontSprocketTeeth;
 FinalDriveTorque = InputTorque*PrimaryRatio*Gear1Ratio*FDR;                 % Unit = Nm
 ForcePressureRing = FinalDriveTorque/PressureRingRadius;                    % Unit = N
-LateralForcePressureRing = tand(90-PowerAngle)*ForcePressureRing/2;         % Unit = N
+LateralForcePressureRing = tand(90-PowerAngle)*ForcePressureRing/2;         % Unit = N   %% DONE
 %% Belleville Spring Calculations
 % http://www.mitcalc.com/doc/springs/help/en/springs.htm
 InnerDiameter = 46;         % Unit = mm
