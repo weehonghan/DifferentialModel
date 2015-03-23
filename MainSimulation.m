@@ -147,13 +147,28 @@ for iSegment = 2: numSegments-1
         %Calculating next Velocity
         if MaxVelocity(iSegment+1) <= MaxVelocity(iSegment)
             Velocity(iSegment+1) = MaxVelocity(iSegment+1);
+            if Radius(iSegment+1) == 999999
+                LatG(iSegent+1) = 0;
+                LatTransfer = (LatG(iSegment)*(CGHeight/1000)*TotalMass)/(RearTrackWidth/1000);
+            else
+                LatG(iSegment+1) = ((((Velocity(iSegment+1)*1000)/3600)^2)/Radius(iSegment+1))/Gravity;
+                LatTransfer = (LatG(iSegment)*(CGHeight/1000)*TotalMass)/(RearTrackWidth/1000);
+            end
         else
-            Velocity(iSegment+1) = MaxVelocity(iSegment);
+           Velocity(iSegment+1) = MaxVelocity(iSegment);
+           if Radius(iSegment+1) == 999999
+                LatG(iSegment+1) = 0;
+                LatTransfer = (LatG(iSegment)*(CGHeight/1000)*TotalMass)/(RearTrackWidth/1000);
+           else
+                LatG(iSegment+1) = ((((Velocity(iSegment+1)*1000)/3600)^2)/Radius(iSegment+1))/Gravity;
+                LatTransfer = (LatG(iSegment)*(CGHeight/1000)*TotalMass)/(RearTrackWidth/1000);
+            end
         end
         %Calculating  current acceleration
         Acceleration(iSegment) = ((Velocity(iSegment+1)/3.6)^2 -  (Velocity(iSegment)/3.6)^2)/(2*segmentLength);
         TractiveForce(iSegment) = TotalMass*Acceleration(iSegment);
         LongG(iSegment) = Acceleration(iSegment)/Gravity;
+        LongTransfer = (LongG(iSegment)*(CGHeight/1000)*TotalMass)/(Wheelbase/1000);
         
     else % Acceleration
         % Calculate Segment Time and Remaining Shift Time
@@ -215,16 +230,26 @@ for iSegment = 2: numSegments-1
         if ShiftTimeRemain(iSegment)>0
             Acceleration(iSegment) = 0;
             LongG(iSegment) = Acceleration(iSegment)/Gravity;
+            LongTransfer = (LongG(iSegment)*(CGHeight/1000)*TotalMass)/(Wheelbase/1000);
         elseif TractiveForce(iSegment)>= Torque(iSegment)
             Acceleration(iSegment) = (Torque(iSegment)-DragCoefficient*(Velocity(iSegment)/3.6)^2)/TotalMass;
             LongG(iSegment) = Acceleration(iSegment)/Gravity;
+            LongTransfer = (LongG(iSegment)*(CGHeight/1000)*TotalMass)/(Wheelbase/1000);
         else
             Acceleration(iSegment) = (TractiveForce(iSegment)-DragCoefficient*(Velocity(iSegment)/3.6)^2)/TotalMass;
             LongG(iSegment) = Acceleration(iSegment)/Gravity;
+            LongTransfer = (LongG(iSegment)*(CGHeight/1000)*TotalMass)/(Wheelbase/1000);
         end
         
         % Calculate next velocity
         Velocity(iSegment+1) = ((((Velocity(iSegment)/3.6)^2)+2*Acceleration(iSegment)*segmentLength)^0.5)*3.6;
+        if Radius(iSegment+1) == 999999
+            LatG(iSegment+1) = 0;
+            LatTransfer = (LatG(iSegment)*(CGHeight/1000)*TotalMass)/(RearTrackWidth/1000);
+        else
+            LatG(iSegment+1) = ((((Velocity(iSegment+1)*1000)/3600)^2)/Radius(iSegment+1))/Gravity;
+            LatTransfer = (LatG(iSegment)*(CGHeight/1000)*TotalMass)/(RearTrackWidth/1000);
+        end
     end
     
     AccumulatedTime(iSegment)= AccumulatedTime(iSegment-1)+SegmentTime(iSegment);
@@ -316,12 +341,15 @@ else %Acceleration
     if ShiftTimeRemain(numSegments)>0
         Acceleration(numSegments) = 0;
         LongG(iSegment) = Acceleration(iSegment)/Gravity;
+        LoadTransferFront = LongG*(CGHeight/1000)*TotalMass/(Wheelbase/1000);
     elseif TractiveForce(numSegments)>= Torque(numSegments)
         Acceleration(numSegments) = (Torque(numSegments)-DragCoefficient*(Velocity(numSegments)/3.6)^2)/TotalMass;
         LongG(iSegment) = Acceleration(iSegment)/Gravity;
+        LoadTransferFront = LongG*(CGHeight/1000)*TotalMass/(Wheelbase/1000);
     else
         Acceleration(numSegments) = (TractiveForce(numSegments)-DragCoefficient*(Velocity(numSegments)/3.6)^2)/TotalMass;
         LongG(iSegment) = Acceleration(iSegment)/Gravity;
+        LoadTransferFront = LongG*(CGHeight/1000)*TotalMass/(Wheelbase/1000);
     end
 end
 AccumulatedTime(numSegments)= AccumulatedTime(numSegments-1)+SegmentTime(numSegments);
