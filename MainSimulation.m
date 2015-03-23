@@ -153,6 +153,7 @@ for iSegment = 2: numSegments-1
         %Calculating  current acceleration
         Acceleration(iSegment) = ((Velocity(iSegment+1)/3.6)^2 -  (Velocity(iSegment)/3.6)^2)/(2*segmentLength);
         TractiveForce(iSegment) = TotalMass*Acceleration(iSegment);
+        LongG(iSegment) = Acceleration(iSegment)/Gravity;
         
     else % Acceleration
         % Calculate Segment Time and Remaining Shift Time
@@ -213,10 +214,13 @@ for iSegment = 2: numSegments-1
         % Calculate Acceleration
         if ShiftTimeRemain(iSegment)>0
             Acceleration(iSegment) = 0;
+            LongG(iSegment) = Acceleration(iSegment)/Gravity;
         elseif TractiveForce(iSegment)>= Torque(iSegment)
             Acceleration(iSegment) = (Torque(iSegment)-DragCoefficient*(Velocity(iSegment)/3.6)^2)/TotalMass;
+            LongG(iSegment) = Acceleration(iSegment)/Gravity;
         else
             Acceleration(iSegment) = (TractiveForce(iSegment)-DragCoefficient*(Velocity(iSegment)/3.6)^2)/TotalMass;
+            LongG(iSegment) = Acceleration(iSegment)/Gravity;
         end
         
         % Calculate next velocity
@@ -258,6 +262,7 @@ if Velocity(numSegments) >= MaxVelocity(numSegments)
     
     %Calculating  current acceleration
     Acceleration(numSegments) = Acceleration(numSegments-1);
+    LongG(iSegment) = Acceleration(iSegment)/Gravity;
     TractiveForce(numSegments) = TotalMass*Acceleration(numSegments);
     
 else %Acceleration
@@ -310,10 +315,13 @@ else %Acceleration
     %Calculate Acceleration
     if ShiftTimeRemain(numSegments)>0
         Acceleration(numSegments) = 0;
+        LongG(iSegment) = Acceleration(iSegment)/Gravity;
     elseif TractiveForce(numSegments)>= Torque(numSegments)
         Acceleration(numSegments) = (Torque(numSegments)-DragCoefficient*(Velocity(numSegments)/3.6)^2)/TotalMass;
+        LongG(iSegment) = Acceleration(iSegment)/Gravity;
     else
         Acceleration(numSegments) = (TractiveForce(numSegments)-DragCoefficient*(Velocity(numSegments)/3.6)^2)/TotalMass;
+        LongG(iSegment) = Acceleration(iSegment)/Gravity;
     end
 end
 AccumulatedTime(numSegments)= AccumulatedTime(numSegments-1)+SegmentTime(numSegments);
@@ -338,10 +346,12 @@ xlswrite(ExportFileName, MaxVelocity, track, 'C2');
 xlswrite(ExportFileName, Velocity, track, 'D2');
 xlswrite(ExportFileName, Gear, track, 'E2');
 xlswrite(ExportFileName, Acceleration, track, 'F2');
-xlswrite(ExportFileName, Torque, track, 'G2');
-xlswrite(ExportFileName, ClutchTorque, track, 'H2');
-xlswrite(ExportFileName, TractiveForce, track, 'I2');
-xlswrite(ExportFileName, ShiftTimeRemain, track, 'J2');
-xlswrite(ExportFileName, SegmentTime, track, 'K2');
-xlswrite(ExportFileName, AccumulatedTime, track, 'L2');
-xlswrite(ExportFileName, Distance, track, 'M2');
+xlswrite(ExportFileName, LongG, track, 'G2');
+xlswrite(ExportFileName, LatG, track, 'H2');
+xlswrite(ExportFileName, Torque, track, 'I2');
+xlswrite(ExportFileName, ClutchTorque, track, 'J2');
+xlswrite(ExportFileName, TractiveForce, track, 'K2');
+xlswrite(ExportFileName, ShiftTimeRemain, track, 'L2');
+xlswrite(ExportFileName, SegmentTime, track, 'M2');
+xlswrite(ExportFileName, AccumulatedTime, track, 'N2');
+xlswrite(ExportFileName, Distance, track, 'O2');
