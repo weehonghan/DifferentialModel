@@ -13,12 +13,14 @@ Acceleration = zeros(numSegments, 1);
 LongG = zeros(numSegments, 1);
 LatG = zeros(numSegments, 1);
 Torque = zeros(numSegments, 1);
+ClutchTorque = zeros(numSegments, 1);
+RLGroundTorque = zeros(numSegments, 1);
+RRGroundTorque = zeros(numSegments, 1);
 TractiveForce = zeros(numSegments, 1);
 ShiftTimeRemain = zeros(numSegments, 1);
 SegmentTime = zeros(numSegments, 1);
 AccumulatedTime = zeros(numSegments, 1);
 Distance = zeros(numSegments, 1);
-ClutchTorque = zeros(numSegments, 1);
 
 accumulatedSegment = segmentLength;
 segmentIndex = 1;

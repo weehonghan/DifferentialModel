@@ -149,7 +149,7 @@ for iSegment = 2: numSegments-1
             Velocity(iSegment+1) = MaxVelocity(iSegment+1);
             if Radius(iSegment+1) == 999999
                 LatG(iSegent+1) = 0;
-                LatTransfer = (LatG(iSegment)*(CGHeight/1000)*TotalMass)/(RearTrackWidth/1000);
+                LatTransfer = 0;
             else
                 LatG(iSegment+1) = ((((Velocity(iSegment+1)*1000)/3600)^2)/Radius(iSegment+1))/Gravity;
                 LatTransfer = (LatG(iSegment)*(CGHeight/1000)*TotalMass)/(RearTrackWidth/1000);
@@ -158,7 +158,7 @@ for iSegment = 2: numSegments-1
            Velocity(iSegment+1) = MaxVelocity(iSegment);
            if Radius(iSegment+1) == 999999
                 LatG(iSegment+1) = 0;
-                LatTransfer = (LatG(iSegment)*(CGHeight/1000)*TotalMass)/(RearTrackWidth/1000);
+                LatTransfer = 0;
            else
                 LatG(iSegment+1) = ((((Velocity(iSegment+1)*1000)/3600)^2)/Radius(iSegment+1))/Gravity;
                 LatTransfer = (LatG(iSegment)*(CGHeight/1000)*TotalMass)/(RearTrackWidth/1000);
@@ -169,6 +169,13 @@ for iSegment = 2: numSegments-1
         TractiveForce(iSegment) = TotalMass*Acceleration(iSegment);
         LongG(iSegment) = Acceleration(iSegment)/Gravity;
         LongTransfer = (LongG(iSegment)*(CGHeight/1000)*TotalMass)/(Wheelbase/1000);
+        
+        RLNormalLoad = CarMass/4+LongTransfer+LatTransfer; % Unit = kg
+        RRNormalLoad = CarMass/4+LongTransfer+LatTransfer; % Unit = kg
+        RLTractionLimit = RLNormalLoad*Gravity*CoFRoad;    % Unit = N
+        RRTractionLimit = RRNormalLoad*Gravity*CoFRoad;    % Unit = N
+        RLGroundTorque(iSegment) = RLTractionLimit*WheelRadius/1000;  % Unit = Nm
+        RRGroundTorque(iSegment) = RRTractionLimit*WheelRadius/1000;  % Unit = Nm
         
     else % Acceleration
         % Calculate Segment Time and Remaining Shift Time
@@ -245,11 +252,18 @@ for iSegment = 2: numSegments-1
         Velocity(iSegment+1) = ((((Velocity(iSegment)/3.6)^2)+2*Acceleration(iSegment)*segmentLength)^0.5)*3.6;
         if Radius(iSegment+1) == 999999
             LatG(iSegment+1) = 0;
-            LatTransfer = (LatG(iSegment)*(CGHeight/1000)*TotalMass)/(RearTrackWidth/1000);
+            LatTransfer = 0;
         else
             LatG(iSegment+1) = ((((Velocity(iSegment+1)*1000)/3600)^2)/Radius(iSegment+1))/Gravity;
             LatTransfer = (LatG(iSegment)*(CGHeight/1000)*TotalMass)/(RearTrackWidth/1000);
         end
+        
+        RLNormalLoad = CarMass/4+LongTransfer+LatTransfer; % Unit = kg
+        RRNormalLoad = CarMass/4+LongTransfer-LatTransfer; % Unit = kg
+        RLTractionLimit = RLNormalLoad*Gravity*CoFRoad;    % Unit = N
+        RRTractionLimit = RRNormalLoad*Gravity*CoFRoad;    % Unit = N
+        RLGroundTorque(iSegment) = RLTractionLimit*WheelRadius/1000;  % Unit = Nm
+        RRGroundTorque(iSegment) = RRTractionLimit*WheelRadius/1000;  % Unit = Nm
     end
     
     AccumulatedTime(iSegment)= AccumulatedTime(iSegment-1)+SegmentTime(iSegment);
@@ -351,7 +365,15 @@ else %Acceleration
         LongG(iSegment) = Acceleration(iSegment)/Gravity;
         LoadTransferFront = LongG*(CGHeight/1000)*TotalMass/(Wheelbase/1000);
     end
+    
+    RLNormalLoad = CarMass/4+LongTransfer+LatTransfer; % Unit = kg
+    RRNormalLoad = CarMass/4+LongTransfer-LatTransfer; % Unit = kg
+    RLTractionLimit = RLNormalLoad*Gravity*CoFRoad;    % Unit = N
+    RRTractionLimit = RRNormalLoad*Gravity*CoFRoad;    % Unit = N
+    RLGroundTorque(iSegment) = RLTractionLimit*WheelRadius/1000;  % Unit = Nm
+    RRGroundTorque(iSegment) = RRTractionLimit*WheelRadius/1000;  % Unit = Nm
 end
+
 AccumulatedTime(numSegments)= AccumulatedTime(numSegments-1)+SegmentTime(numSegments);
 Distance(numSegments)= (SegmentNumber(numSegments)-1)*segmentLength;
 
@@ -378,8 +400,10 @@ xlswrite(ExportFileName, LongG, track, 'G2');
 xlswrite(ExportFileName, LatG, track, 'H2');
 xlswrite(ExportFileName, Torque, track, 'I2');
 xlswrite(ExportFileName, ClutchTorque, track, 'J2');
-xlswrite(ExportFileName, TractiveForce, track, 'K2');
-xlswrite(ExportFileName, ShiftTimeRemain, track, 'L2');
-xlswrite(ExportFileName, SegmentTime, track, 'M2');
-xlswrite(ExportFileName, AccumulatedTime, track, 'N2');
-xlswrite(ExportFileName, Distance, track, 'O2');
+xlswrite(ExportFileName, RLGroundTorque, track, 'K2');
+xlswrite(ExportFileName, RRGroundTorque, track, 'L2');
+xlswrite(ExportFileName, TractiveForce, track, 'M2');
+xlswrite(ExportFileName, ShiftTimeRemain, track, 'N2');
+xlswrite(ExportFileName, SegmentTime, track, 'O2');
+xlswrite(ExportFileName, AccumulatedTime, track, 'P2');
+xlswrite(ExportFileName, Distance, track, 'Q2');

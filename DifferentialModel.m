@@ -11,31 +11,19 @@ ExportFileName = 'TransmissionModelResults.xlsx';
 Gravity = 9.81;
 CarMass = 197; %KG
 DriverMass = 67; %KG
-AeroMass = 15; %KG
+AeroMass = 0; %KG
 TotalMass = CarMass + DriverMass +AeroMass;
 WeightBiasFront = 0.45;   %*****In progress***** Need to understand Tire load sensitivity and  how C.G location affections it
 WeightBiasRear = 1 - WeightBiasFront; %*****In progress***** Need to understand Tire load sensitivity and  how C.G location affections it
 
 CoFRoad = 0.7;
-WheelRadius = 9*25.4;       % Unit = mm
-
-RLNormalLoad = CarMass/4; % Unit = kg         ***FUNCTION OF LOAD TRANSFERS, NOT A CONSTANT***
-RRNormalLoad = CarMass/4; % Unit = kg         ***FUNCTION OF LOAD TRANSFERS, NOT A CONSTANT***
-
-RLTractionLimit = RLNormalLoad*Gravity*CoFRoad;
-RRTractionLimit = RRNormalLoad*Gravity*CoFRoad;
-
-RLGroundTorque = RLTractionLimit*WheelRadius/1000;  % Unit = Nm
-RRGroundTorque = RRTractionLimit*WheelRadius/1000;  % Unit = Nm
+WheelRadius = 10*25.4;       % Unit = mm
 
 CGHeight = 315;              % Unit = mm
 Wheelbase = 1555;            % Unit = mm
 FrontTrackWidth = 1200;      % Unit = mm
 RearTrackWidth = 1190;      % Unit = mm
 TireRadius = 254;           % Unit = mm
-
-% RearSlipAngle?
-% LatForce
 
 % AeroDynamics
 LiftCoefficient = 0.1;
