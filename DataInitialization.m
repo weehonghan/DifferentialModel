@@ -6,6 +6,7 @@ numSegments = (numSections / segmentLength) + 1 ;
 
 SegmentNumber = zeros(numSegments, 1);
 Radius = zeros(numSegments, 1);
+Direction = zeros(numSegments, 1);
 MaxVelocity = zeros(numSegments, 1);
 Velocity = zeros(numSegments, 1);
 Gear = zeros(numSegments, 1);

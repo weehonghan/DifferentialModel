@@ -6,6 +6,7 @@ run DataInitialization
 % Initialize Launch Condition
 SegmentNumber(1) = 1;
 Radius(1) = 999999;
+Direction(1) = 1;
 MaxVelocity(1) = CarMaxVel;
 Velocity(1) = 30;
 Gear(1) = 2;

@@ -39,6 +39,7 @@ for i = 2:numSegments
         accumulatedSegment = segmentLength;
     end
     Radius(i) = details(segmentIndex, 3);
+    Direction(i) = details(segmentIndex, 4);
     accumulatedSegment = accumulatedSegment + segmentLength;
 end
 
@@ -104,7 +105,7 @@ for i = 1: corners
             (9.814+LiftCoefficient*(velocity1)^2)*muLat))^2)^0.5) * (TotalMass*9.814 + LiftCoefficient * ...
             (velocity1)^2) + DragCoefficient * (velocity1)^2)/TotalMass),(MaxVelocity(CornerEntryIndex)/3.6));
         if PreviousVelStore <  MaxVelocity(CornerEntryIndex-1)
-            MaxVelocity(CornerEntryIndex-1) = PreviousVelStore;     
+            MaxVelocity(CornerEntryIndex-1) = PreviousVelStore;   
         else
             break
         end
@@ -147,6 +148,7 @@ for iSegment = 2: numSegments-1
         %Calculating next Velocity
         if MaxVelocity(iSegment+1) <= MaxVelocity(iSegment)
             Velocity(iSegment+1) = MaxVelocity(iSegment+1);
+            
             if Radius(iSegment+1) == 999999
                 LatG(iSegent+1) = 0;
                 LatTransfer = 0;
@@ -170,8 +172,17 @@ for iSegment = 2: numSegments-1
         LongG(iSegment) = Acceleration(iSegment)/Gravity;
         LongTransfer = (LongG(iSegment)*(CGHeight/1000)*TotalMass)/(Wheelbase/1000);
         
-        RLNormalLoad = CarMass/4+LongTransfer+LatTransfer; % Unit = kg
-        RRNormalLoad = CarMass/4+LongTransfer+LatTransfer; % Unit = kg
+        if Direction(iSegment) == 0      % Turn Left
+            RLNormalLoad = CarMass/4+LongTransfer-LatTransfer; % Unit = kg
+            RRNormalLoad = CarMass/4+LongTransfer+LatTransfer; % Unit = kg
+        elseif Direction(iSegment) == 1  % Turn Right
+            RLNormalLoad = CarMass/4+LongTransfer+LatTransfer; % Unit = kg
+            RRNormalLoad = CarMass/4+LongTransfer-LatTransfer; % Unit = kg
+        else
+            RLNormalLoad = CarMass/4+LongTransfer; % Unit = kg
+            RRNormalLoad = CarMass/4+LongTransfer; % Unit = kg
+        end       
+        
         RLTractionLimit = RLNormalLoad*Gravity*CoFRoad;    % Unit = N
         RRTractionLimit = RRNormalLoad*Gravity*CoFRoad;    % Unit = N
         RLGroundTorque(iSegment) = RLTractionLimit*WheelRadius/1000;  % Unit = Nm
@@ -258,8 +269,17 @@ for iSegment = 2: numSegments-1
             LatTransfer = (LatG(iSegment)*(CGHeight/1000)*TotalMass)/(RearTrackWidth/1000);
         end
         
-        RLNormalLoad = CarMass/4+LongTransfer+LatTransfer; % Unit = kg
-        RRNormalLoad = CarMass/4+LongTransfer-LatTransfer; % Unit = kg
+        if Direction(iSegment) == 0      % Turn Left
+            RLNormalLoad = CarMass/4+LongTransfer-LatTransfer; % Unit = kg
+            RRNormalLoad = CarMass/4+LongTransfer+LatTransfer; % Unit = kg
+        elseif Direction(iSegment) == 1  % Turn Right
+            RLNormalLoad = CarMass/4+LongTransfer+LatTransfer; % Unit = kg
+            RRNormalLoad = CarMass/4+LongTransfer-LatTransfer; % Unit = kg
+        else
+            RLNormalLoad = CarMass/4+LongTransfer; % Unit = kg
+            RRNormalLoad = CarMass/4+LongTransfer; % Unit = kg
+        end
+       
         RLTractionLimit = RLNormalLoad*Gravity*CoFRoad;    % Unit = N
         RRTractionLimit = RRNormalLoad*Gravity*CoFRoad;    % Unit = N
         RLGroundTorque(iSegment) = RLTractionLimit*WheelRadius/1000;  % Unit = Nm
@@ -366,8 +386,17 @@ else %Acceleration
         LoadTransferFront = LongG*(CGHeight/1000)*TotalMass/(Wheelbase/1000);
     end
     
-    RLNormalLoad = CarMass/4+LongTransfer+LatTransfer; % Unit = kg
-    RRNormalLoad = CarMass/4+LongTransfer-LatTransfer; % Unit = kg
+    if Direction(iSegment) == 0      % Turn Left
+        RLNormalLoad = CarMass/4+LongTransfer-LatTransfer; % Unit = kg
+        RRNormalLoad = CarMass/4+LongTransfer+LatTransfer; % Unit = kg
+    elseif Direction(iSegment) == 1  % Turn Right
+        RLNormalLoad = CarMass/4+LongTransfer+LatTransfer; % Unit = kg
+        RRNormalLoad = CarMass/4+LongTransfer-LatTransfer; % Unit = kg
+    else
+        RLNormalLoad = CarMass/4+LongTransfer; % Unit = kg
+        RRNormalLoad = CarMass/4+LongTransfer; % Unit = kg
+    end
+    
     RLTractionLimit = RLNormalLoad*Gravity*CoFRoad;    % Unit = N
     RRTractionLimit = RRNormalLoad*Gravity*CoFRoad;    % Unit = N
     RLGroundTorque(iSegment) = RLTractionLimit*WheelRadius/1000;  % Unit = Nm
@@ -392,18 +421,19 @@ ylabel('CurrentVelocity')
 %% Save To Excel
 xlswrite(ExportFileName, SegmentNumber, track, 'A2');
 xlswrite(ExportFileName, Radius, track, 'B2');
-xlswrite(ExportFileName, MaxVelocity, track, 'C2');
-xlswrite(ExportFileName, Velocity, track, 'D2');
-xlswrite(ExportFileName, Gear, track, 'E2');
-xlswrite(ExportFileName, Acceleration, track, 'F2');
-xlswrite(ExportFileName, LongG, track, 'G2');
-xlswrite(ExportFileName, LatG, track, 'H2');
-xlswrite(ExportFileName, Torque, track, 'I2');
-xlswrite(ExportFileName, ClutchTorque, track, 'J2');
-xlswrite(ExportFileName, RLGroundTorque, track, 'K2');
-xlswrite(ExportFileName, RRGroundTorque, track, 'L2');
-xlswrite(ExportFileName, TractiveForce, track, 'M2');
-xlswrite(ExportFileName, ShiftTimeRemain, track, 'N2');
-xlswrite(ExportFileName, SegmentTime, track, 'O2');
-xlswrite(ExportFileName, AccumulatedTime, track, 'P2');
-xlswrite(ExportFileName, Distance, track, 'Q2');
+xlswrite(ExportFileName, Direction, track, 'C2');
+xlswrite(ExportFileName, MaxVelocity, track, 'D2');
+xlswrite(ExportFileName, Velocity, track, 'E2');
+xlswrite(ExportFileName, Gear, track, 'F2');
+xlswrite(ExportFileName, Acceleration, track, 'G2');
+xlswrite(ExportFileName, LongG, track, 'H2');
+xlswrite(ExportFileName, LatG, track, 'I2');
+xlswrite(ExportFileName, Torque, track, 'J2');
+xlswrite(ExportFileName, ClutchTorque, track, 'K2');
+xlswrite(ExportFileName, RLGroundTorque, track, 'L2');
+xlswrite(ExportFileName, RRGroundTorque, track, 'M2');
+xlswrite(ExportFileName, TractiveForce, track, 'N2');
+xlswrite(ExportFileName, ShiftTimeRemain, track, 'O2');
+xlswrite(ExportFileName, SegmentTime, track, 'P2');
+xlswrite(ExportFileName, AccumulatedTime, track, 'Q2');
+xlswrite(ExportFileName, Distance, track, 'R2');
