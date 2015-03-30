@@ -14,6 +14,7 @@ Acceleration = zeros(numSegments, 1);
 LongG = zeros(numSegments, 1);
 LatG = zeros(numSegments, 1);
 Torque = zeros(numSegments, 1);
+Force = zeros(numSegments, 1);
 ClutchTorque = zeros(numSegments, 1);
 RLGroundTorque = zeros(numSegments, 1);
 RRGroundTorque = zeros(numSegments, 1);

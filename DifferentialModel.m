@@ -13,7 +13,7 @@ CarMass = 197; %KG
 DriverMass = 67; %KG
 AeroMass = 0; %KG
 TotalMass = CarMass + DriverMass +AeroMass;
-WeightBiasFront = 0.45;   %*****In progress***** Need to understand Tire load sensitivity and  how C.G location affections it
+WeightBiasFront = 0.47;   %*****In progress***** Need to understand Tire load sensitivity and  how C.G location affections it
 WeightBiasRear = 1 - WeightBiasFront; %*****In progress***** Need to understand Tire load sensitivity and  how C.G location affections it
 
 CoFRoad = 0.7;
@@ -23,7 +23,7 @@ CGHeight = 315;              % Unit = mm
 Wheelbase = 1555;            % Unit = mm
 FrontTrackWidth = 1200;      % Unit = mm
 RearTrackWidth = 1190;      % Unit = mm
-TireRadius = 254;           % Unit = mm
+TireRadius = 0.2286;
 
 % AeroDynamics
 LiftCoefficient = 0.1;
@@ -53,7 +53,7 @@ AvaliableMovement = RaceTrackWidth - CarTrackWidth - 2*CarToConeClearance;
 % Gear Ratios
 FrontSprocketTeeth = 11;
 RearSprocketTeeth = 36;
-FDR = RearSprocketTeeth/FrontSprocketTeeth;
+FDR = RearSprocketTeeth/FrontSprocketTeeth;   % USING
 TotalGearRatio1 = FDR * 5.806;
 TotalGearRatio2 = FDR * 4.222;
 TotalGearRatio3 = FDR * 3.519;
@@ -64,7 +64,6 @@ DriveLineEff = 0.9;
 ShiftTime = 0.2;
 
 % Tire Parameters
-TireRadius = 0.2286;
 muLong2 = 2;
 muLat2 = 2;
 muLong = muLong2 - 0.084*TotalMass/2*9.81*10^-3; %Tire load sensitivity **** Need more study on this****
@@ -73,15 +72,14 @@ muLat = muLat2 - 0.084*TotalMass/2*9.81*10^-3;  %Tire load sensitivity **** Need
 % Current Value is assume a Lat g of 1.38
 
 %% Differential Inputs
-PowerAngle = 45;        % Unit = Degrees
+PowerAngle = 45;        % Unit = Degrees   % USING
 CoastingAngle = 60;     % Unit = Degrees
-PreloadTorque = 15;     % Unit = Nm
+PreloadTorque = 15;     % Unit = Nm        % USING
 PressureRingRadius = 0.037594;  % Unit = m
 
-N = 5;
+N = 10; % USING
 CoFPlates = 0.16; % From http://www.engineeringtoolbox.com/friction-coefficients-d_778.html
 EffectiveRadius = 0.032995322;      % Unit = m
-
 
 %% Belleville Spring Initialization
 % http://www.mitcalc.com/doc/springs/help/en/springs.htm
@@ -111,12 +109,12 @@ Gear5Velocity = EngineRPM * 2 * pi / 60 / TotalGearRatio5 * TireRadius * 3.6;
 Gear6Velocity = EngineRPM * 2 * pi / 60 / TotalGearRatio6 * TireRadius * 3.6;
 
 %% Gear Force at wheels **Both Wheels**
-Gear1Force = DriverThrottle * DriveLineEff * EngineTorque * TotalGearRatio1 / TireRadius;
-Gear2Force = DriverThrottle * DriveLineEff * EngineTorque * TotalGearRatio2 / TireRadius;
-Gear3Force = DriverThrottle * DriveLineEff * EngineTorque * TotalGearRatio3 / TireRadius;
-Gear4Force = DriverThrottle * DriveLineEff * EngineTorque * TotalGearRatio4 / TireRadius;
-Gear5Force = DriverThrottle * DriveLineEff * EngineTorque * TotalGearRatio5 / TireRadius;
-Gear6Force = DriverThrottle * DriveLineEff * EngineTorque * TotalGearRatio6 / TireRadius;
+Gear1Force = DriverThrottle * EngineTorque * TotalGearRatio1 / TireRadius;
+Gear2Force = DriverThrottle * EngineTorque * TotalGearRatio2 / TireRadius;
+Gear3Force = DriverThrottle * EngineTorque * TotalGearRatio3 / TireRadius;
+Gear4Force = DriverThrottle * EngineTorque * TotalGearRatio4 / TireRadius;
+Gear5Force = DriverThrottle * EngineTorque * TotalGearRatio5 / TireRadius;
+Gear6Force = DriverThrottle * EngineTorque * TotalGearRatio6 / TireRadius;
 
 %% Fitting of different force velocity curves
 % Get force at wheelS(both Wheels) by inputing the current speed. Example "Force@wheel = Gear2ForceCurve(50)

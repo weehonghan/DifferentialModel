@@ -2,7 +2,7 @@
 % *****Not A robust logic to calculate vehicle max speed*****
 % Doesnt take into account high drag car with max speed of < 50km/hr but good enough for most of our cars
 AeroDrag = DragCoefficient * (AeroVel/3.6).^2;
-DragForceCurve= FitCurve(AeroVel,AeroDrag);
+DragForceCurve = FitCurve(AeroVel,AeroDrag);
 
 if(DragCoefficient==0)
     CarMaxVel= max(Gear6Velocity);
@@ -153,8 +153,8 @@ for iSegment = 2: numSegments-1
                 LatG(iSegent+1) = 0;
                 LatTransfer = 0;
             else
-                LatG(iSegment+1) = ((((Velocity(iSegment+1)*1000)/3600)^2)/Radius(iSegment+1))/Gravity;
-                LatTransfer = (LatG(iSegment)*(CGHeight/1000)*TotalMass)/(RearTrackWidth/1000);
+                LatG(iSegment+1) = (((Velocity(iSegment+1)*1000)/3600)^2)/(Radius(iSegment+1)*Gravity);
+                LatTransfer = ((LatG(iSegment)*(CGHeight/1000)*TotalMass)/((RearTrackWidth/1000)*Gravity))/2;
             end
         else
            Velocity(iSegment+1) = MaxVelocity(iSegment);
@@ -162,25 +162,25 @@ for iSegment = 2: numSegments-1
                 LatG(iSegment+1) = 0;
                 LatTransfer = 0;
            else
-                LatG(iSegment+1) = ((((Velocity(iSegment+1)*1000)/3600)^2)/Radius(iSegment+1))/Gravity;
-                LatTransfer = (LatG(iSegment)*(CGHeight/1000)*TotalMass)/(RearTrackWidth/1000);
+                LatG(iSegment+1) = (((Velocity(iSegment+1)*1000)/3600)^2)/(Radius(iSegment+1)*Gravity);
+               LatTransfer = ((LatG(iSegment)*(CGHeight/1000)*TotalMass)/((RearTrackWidth/1000)*Gravity))/2;
             end
         end
         %Calculating  current acceleration
         Acceleration(iSegment) = ((Velocity(iSegment+1)/3.6)^2 -  (Velocity(iSegment)/3.6)^2)/(2*segmentLength);
         TractiveForce(iSegment) = TotalMass*Acceleration(iSegment);
         LongG(iSegment) = Acceleration(iSegment)/Gravity;
-        LongTransfer = (LongG(iSegment)*(CGHeight/1000)*TotalMass)/(Wheelbase/1000);
+        LongTransfer = ((LongG(iSegment)*(CGHeight/1000)*TotalMass)/((Wheelbase/1000)*Gravity))/2;
         
         if Direction(iSegment) == 0      % Turn Left
-            RLNormalLoad = CarMass/4+LongTransfer-LatTransfer; % Unit = kg
-            RRNormalLoad = CarMass/4+LongTransfer+LatTransfer; % Unit = kg
+            RLNormalLoad = ((CarMass/2)*WeightBiasRear)+LongTransfer-LatTransfer; % Unit = kg
+            RRNormalLoad = ((CarMass/2)*WeightBiasRear)+LongTransfer+LatTransfer; % Unit = kg
         elseif Direction(iSegment) == 1  % Turn Right
-            RLNormalLoad = CarMass/4+LongTransfer+LatTransfer; % Unit = kg
-            RRNormalLoad = CarMass/4+LongTransfer-LatTransfer; % Unit = kg
+            RLNormalLoad = ((CarMass/2)*WeightBiasRear)+LongTransfer+LatTransfer; % Unit = kg
+            RRNormalLoad = ((CarMass/2)*WeightBiasRear)+LongTransfer-LatTransfer; % Unit = kg
         else
-            RLNormalLoad = CarMass/4+LongTransfer; % Unit = kg
-            RRNormalLoad = CarMass/4+LongTransfer; % Unit = kg
+            RLNormalLoad = ((CarMass/2)*WeightBiasRear)+LongTransfer; % Unit = kg
+            RRNormalLoad = ((CarMass/2)*WeightBiasRear)+LongTransfer; % Unit = kg
         end       
         
         RLTractionLimit = RLNormalLoad*Gravity*CoFRoad;    % Unit = N
@@ -221,17 +221,17 @@ for iSegment = 2: numSegments-1
         % Calculate and log engine force
         switch(CurrentGear)
             case 1
-                Torque(iSegment)=Gear1ForceCurve(Velocity(iSegment));
+                Force(iSegment)=Gear1ForceCurve(Velocity(iSegment));
             case 2
-                Torque(iSegment)=Gear2ForceCurve(Velocity(iSegment));
+                Force(iSegment)=Gear2ForceCurve(Velocity(iSegment));
             case 3
-                Torque(iSegment)=Gear3ForceCurve(Velocity(iSegment));
+                Force(iSegment)=Gear3ForceCurve(Velocity(iSegment));
             case 4
-                Torque(iSegment)=Gear4ForceCurve(Velocity(iSegment));
+                Force(iSegment)=Gear4ForceCurve(Velocity(iSegment));
             case 5
-                Torque(iSegment)=Gear5ForceCurve(Velocity(iSegment));
+                Force(iSegment)=Gear5ForceCurve(Velocity(iSegment));
             case 6
-                Torque(iSegment)=Gear6ForceCurve(Velocity(iSegment));
+                Force(iSegment)=Gear6ForceCurve(Velocity(iSegment));
         end
         
         % Calculate avaliable tractive force
@@ -240,23 +240,24 @@ for iSegment = 2: numSegments-1
             (TotalMass*9.814*WeightBiasRear + LiftCoefficient*((Velocity(iSegment)/3.6)^2)*AeroBalance));
         
         % Differential Calculations
+        Torque(iSegment) =  Force(iSegment)*TireRadius;
         ForcePressureRing = Torque(iSegment)/PressureRingRadius;                    % Unit = N
-        LateralForcePressureRing = tand(90-PowerAngle)*ForcePressureRing/2;         % Unit = N
-        ClutchTorque(iSegment) = N*CoFPlates*LateralForcePressureRing*EffectiveRadius;  
+        LateralForcePressureRing = (tand(90-PowerAngle)*ForcePressureRing);         % Unit = N
+        ClutchTorque(iSegment) = ((N*CoFPlates*(LateralForcePressureRing-(2*MaxSpringForce))*EffectiveRadius) * DriveLineEff) - PreloadTorque; 
         
         % Calculate Acceleration
         if ShiftTimeRemain(iSegment)>0
             Acceleration(iSegment) = 0;
             LongG(iSegment) = Acceleration(iSegment)/Gravity;
-            LongTransfer = (LongG(iSegment)*(CGHeight/1000)*TotalMass)/(Wheelbase/1000);
-        elseif TractiveForce(iSegment)>= Torque(iSegment)
-            Acceleration(iSegment) = (Torque(iSegment)-DragCoefficient*(Velocity(iSegment)/3.6)^2)/TotalMass;
+            LongTransfer = ((LongG(iSegment)*(CGHeight/1000)*TotalMass)/((Wheelbase/1000)*Gravity))/2;
+        elseif TractiveForce(iSegment)>= Force(iSegment)
+            Acceleration(iSegment) = (Force(iSegment)-DragCoefficient*(Velocity(iSegment)/3.6)^2)/TotalMass;
             LongG(iSegment) = Acceleration(iSegment)/Gravity;
-            LongTransfer = (LongG(iSegment)*(CGHeight/1000)*TotalMass)/(Wheelbase/1000);
+            LongTransfer = ((LongG(iSegment)*(CGHeight/1000)*TotalMass)/((Wheelbase/1000)*Gravity))/2;
         else
             Acceleration(iSegment) = (TractiveForce(iSegment)-DragCoefficient*(Velocity(iSegment)/3.6)^2)/TotalMass;
             LongG(iSegment) = Acceleration(iSegment)/Gravity;
-            LongTransfer = (LongG(iSegment)*(CGHeight/1000)*TotalMass)/(Wheelbase/1000);
+            LongTransfer = ((LongG(iSegment)*(CGHeight/1000)*TotalMass)/((Wheelbase/1000)*Gravity))/2;
         end
         
         % Calculate next velocity
@@ -265,20 +266,20 @@ for iSegment = 2: numSegments-1
             LatG(iSegment+1) = 0;
             LatTransfer = 0;
         else
-            LatG(iSegment+1) = ((((Velocity(iSegment+1)*1000)/3600)^2)/Radius(iSegment+1))/Gravity;
-            LatTransfer = (LatG(iSegment)*(CGHeight/1000)*TotalMass)/(RearTrackWidth/1000);
+            LatG(iSegment+1) = (((Velocity(iSegment+1)*1000)/3600)^2)/(Radius(iSegment+1)*Gravity);
+            LatTransfer = ((LatG(iSegment)*(CGHeight/1000)*TotalMass)/((RearTrackWidth/1000)*Gravity))/2;
         end
         
         if Direction(iSegment) == 0      % Turn Left
-            RLNormalLoad = CarMass/4+LongTransfer-LatTransfer; % Unit = kg
-            RRNormalLoad = CarMass/4+LongTransfer+LatTransfer; % Unit = kg
+            RLNormalLoad = ((CarMass/2)*WeightBiasRear)+LongTransfer-LatTransfer; % Unit = kg
+            RRNormalLoad = ((CarMass/2)*WeightBiasRear)+LongTransfer+LatTransfer; % Unit = kg
         elseif Direction(iSegment) == 1  % Turn Right
-            RLNormalLoad = CarMass/4+LongTransfer+LatTransfer; % Unit = kg
-            RRNormalLoad = CarMass/4+LongTransfer-LatTransfer; % Unit = kg
+            RLNormalLoad = ((CarMass/2)*WeightBiasRear)+LongTransfer+LatTransfer; % Unit = kg
+            RRNormalLoad = ((CarMass/2)*WeightBiasRear)+LongTransfer-LatTransfer; % Unit = kg
         else
-            RLNormalLoad = CarMass/4+LongTransfer; % Unit = kg
-            RRNormalLoad = CarMass/4+LongTransfer; % Unit = kg
-        end
+            RLNormalLoad = ((CarMass/2)*WeightBiasRear)+LongTransfer; % Unit = kg
+            RRNormalLoad = ((CarMass/2)*WeightBiasRear)+LongTransfer; % Unit = kg
+        end 
        
         RLTractionLimit = RLNormalLoad*Gravity*CoFRoad;    % Unit = N
         RRTractionLimit = RRNormalLoad*Gravity*CoFRoad;    % Unit = N
@@ -353,17 +354,17 @@ else %Acceleration
     %Calculate and log engine force
     switch(CurrentGear)
         case 1
-            Torque(numSegments)=Gear1ForceCurve(Velocity(numSegments));
+            Force(numSegments)=Gear1ForceCurve(Velocity(numSegments));
         case 2
-            Torque(numSegments)=Gear2ForceCurve(Velocity(numSegments));
+            Force(numSegments)=Gear2ForceCurve(Velocity(numSegments));
         case 3
-            Torque(numSegments)=Gear3ForceCurve(Velocity(numSegments));
+            Force(numSegments)=Gear3ForceCurve(Velocity(numSegments));
         case 4
-            Torque(numSegments)=Gear4ForceCurve(Velocity(numSegments));
+            Force(numSegments)=Gear4ForceCurve(Velocity(numSegments));
         case 5
-            Torque(numSegments)=Gear5ForceCurve(Velocity(numSegments));
+            Force(numSegments)=Gear5ForceCurve(Velocity(numSegments));
         case 6
-            Torque(numSegments)=Gear6ForceCurve(Velocity(numSegments));
+            Force(numSegments)=Gear6ForceCurve(Velocity(numSegments));
     end
     
     %Calculate avaliable tractive force
@@ -375,27 +376,27 @@ else %Acceleration
     if ShiftTimeRemain(numSegments)>0
         Acceleration(numSegments) = 0;
         LongG(iSegment) = Acceleration(iSegment)/Gravity;
-        LoadTransferFront = LongG*(CGHeight/1000)*TotalMass/(Wheelbase/1000);
+        LongTransfer = ((LongG(iSegment)*(CGHeight/1000)*TotalMass)/((Wheelbase/1000)*Gravity))/2;
     elseif TractiveForce(numSegments)>= Torque(numSegments)
         Acceleration(numSegments) = (Torque(numSegments)-DragCoefficient*(Velocity(numSegments)/3.6)^2)/TotalMass;
         LongG(iSegment) = Acceleration(iSegment)/Gravity;
-        LoadTransferFront = LongG*(CGHeight/1000)*TotalMass/(Wheelbase/1000);
+        LongTransfer = ((LongG(iSegment)*(CGHeight/1000)*TotalMass)/((Wheelbase/1000)*Gravity))/2;
     else
         Acceleration(numSegments) = (TractiveForce(numSegments)-DragCoefficient*(Velocity(numSegments)/3.6)^2)/TotalMass;
         LongG(iSegment) = Acceleration(iSegment)/Gravity;
-        LoadTransferFront = LongG*(CGHeight/1000)*TotalMass/(Wheelbase/1000);
+        LongTransfer = ((LongG(iSegment)*(CGHeight/1000)*TotalMass)/((Wheelbase/1000)*Gravity))/2;
     end
     
     if Direction(iSegment) == 0      % Turn Left
-        RLNormalLoad = CarMass/4+LongTransfer-LatTransfer; % Unit = kg
-        RRNormalLoad = CarMass/4+LongTransfer+LatTransfer; % Unit = kg
+        RLNormalLoad = ((CarMass/2)*WeightBiasRear)+LongTransfer-LatTransfer; % Unit = kg
+        RRNormalLoad = ((CarMass/2)*WeightBiasRear)+LongTransfer+LatTransfer; % Unit = kg
     elseif Direction(iSegment) == 1  % Turn Right
-        RLNormalLoad = CarMass/4+LongTransfer+LatTransfer; % Unit = kg
-        RRNormalLoad = CarMass/4+LongTransfer-LatTransfer; % Unit = kg
+        RLNormalLoad = ((CarMass/2)*WeightBiasRear)+LongTransfer+LatTransfer; % Unit = kg
+        RRNormalLoad = ((CarMass/2)*WeightBiasRear)+LongTransfer-LatTransfer; % Unit = kg
     else
-        RLNormalLoad = CarMass/4+LongTransfer; % Unit = kg
-        RRNormalLoad = CarMass/4+LongTransfer; % Unit = kg
-    end
+        RLNormalLoad = ((CarMass/2)*WeightBiasRear)+LongTransfer; % Unit = kg
+        RRNormalLoad = ((CarMass/2)*WeightBiasRear)+LongTransfer; % Unit = kg
+    end 
     
     RLTractionLimit = RLNormalLoad*Gravity*CoFRoad;    % Unit = N
     RRTractionLimit = RRNormalLoad*Gravity*CoFRoad;    % Unit = N
