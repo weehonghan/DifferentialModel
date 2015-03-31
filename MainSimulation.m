@@ -243,6 +243,11 @@ for iSegment = 2: numSegments-1
         Torque(iSegment) =  Force(iSegment)*TireRadius;
         ForcePressureRing = Torque(iSegment)/PressureRingRadius;                    % Unit = N
         LateralForcePressureRing = (tand(90-PowerAngle)*ForcePressureRing);         % Unit = N
+        if LateralForcePressureRing >= 2*MaxSpringForce 
+            Differential(iSegment) = 1;  % Locked
+        else
+            Differential(iSegment) = LateralForcePressureRing/2*MaxSpringForce; % Open
+        end
         ClutchTorque(iSegment) = ((N*CoFPlates*(LateralForcePressureRing-(2*MaxSpringForce))*EffectiveRadius) * DriveLineEff) - PreloadTorque; 
         
         % Calculate Acceleration
@@ -408,17 +413,21 @@ AccumulatedTime(numSegments)= AccumulatedTime(numSegments-1)+SegmentTime(numSegm
 Distance(numSegments)= (SegmentNumber(numSegments)-1)*segmentLength;
 
 %% Graph Plotting
+% figure
+% plot(AccumulatedTime, Velocity)
+% title(sprintf('%s Figure 1', track))
+% xlabel('AccumulatedTime')
+% ylabel('CurrentVelocity')
+% figure
+% plot(Distance, Velocity)
+% title(sprintf('%s Figure 2', track))
+% xlabel('Distance')
+% ylabel('CurrentVelocity')
 figure
-plot(AccumulatedTime, Velocity)
-title(sprintf('%s Figure 1', track))
-xlabel('AccumulatedTime')
-ylabel('CurrentVelocity')
-figure
-plot(Distance, Velocity)
-title(sprintf('%s Figure 2', track))
+plot(Distance, Differential)
+title(sprintf('%s Differential', track))
 xlabel('Distance')
-ylabel('CurrentVelocity')
-
+ylabel('Differential')
 %% Save To Excel
 xlswrite(ExportFileName, SegmentNumber, track, 'A2');
 xlswrite(ExportFileName, Radius, track, 'B2');
@@ -431,10 +440,11 @@ xlswrite(ExportFileName, LongG, track, 'H2');
 xlswrite(ExportFileName, LatG, track, 'I2');
 xlswrite(ExportFileName, Torque, track, 'J2');
 xlswrite(ExportFileName, ClutchTorque, track, 'K2');
-xlswrite(ExportFileName, RLGroundTorque, track, 'L2');
-xlswrite(ExportFileName, RRGroundTorque, track, 'M2');
-xlswrite(ExportFileName, TractiveForce, track, 'N2');
-xlswrite(ExportFileName, ShiftTimeRemain, track, 'O2');
-xlswrite(ExportFileName, SegmentTime, track, 'P2');
-xlswrite(ExportFileName, AccumulatedTime, track, 'Q2');
-xlswrite(ExportFileName, Distance, track, 'R2');
+xlswrite(ExportFileName, Differential, track, 'L2');
+xlswrite(ExportFileName, RLGroundTorque, track, 'M2');
+xlswrite(ExportFileName, RRGroundTorque, track, 'N2');
+xlswrite(ExportFileName, TractiveForce, track, 'O2');
+xlswrite(ExportFileName, ShiftTimeRemain, track, 'P2');
+xlswrite(ExportFileName, SegmentTime, track, 'Q2');
+xlswrite(ExportFileName, AccumulatedTime, track, 'R2');
+xlswrite(ExportFileName, Distance, track, 'S2');

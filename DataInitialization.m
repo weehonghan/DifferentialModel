@@ -18,6 +18,7 @@ Force = zeros(numSegments, 1);
 ClutchTorque = zeros(numSegments, 1);
 RLGroundTorque = zeros(numSegments, 1);
 RRGroundTorque = zeros(numSegments, 1);
+Differential = zeros(numSegments, 1);
 TractiveForce = zeros(numSegments, 1);
 ShiftTimeRemain = zeros(numSegments, 1);
 SegmentTime = zeros(numSegments, 1);
