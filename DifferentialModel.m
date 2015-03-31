@@ -16,14 +16,13 @@ TotalMass = CarMass + DriverMass +AeroMass;
 WeightBiasFront = 0.47;   %*****In progress***** Need to understand Tire load sensitivity and  how C.G location affections it
 WeightBiasRear = 1 - WeightBiasFront; %*****In progress***** Need to understand Tire load sensitivity and  how C.G location affections it
 
-CoFRoad = 0.7;
-WheelRadius = 10*25.4;       % Unit = mm
+CoFRoad = 1.1;
 
 CGHeight = 315;              % Unit = mm
 Wheelbase = 1555;            % Unit = mm
 FrontTrackWidth = 1200;      % Unit = mm
 RearTrackWidth = 1190;      % Unit = mm
-TireRadius = 0.2286;
+TireRadius = 0.254;
 
 % AeroDynamics
 LiftCoefficient = 0.1;
@@ -175,3 +174,4 @@ run Accel
 run Skidpad
 run Slalom
 run UTurn
+run Oval

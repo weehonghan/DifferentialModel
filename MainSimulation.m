@@ -150,7 +150,7 @@ for iSegment = 2: numSegments-1
             Velocity(iSegment+1) = MaxVelocity(iSegment+1);
             
             if Radius(iSegment+1) == 999999
-                LatG(iSegent+1) = 0;
+                LatG(iSegment+1) = 0;
                 LatTransfer = 0;
             else
                 LatG(iSegment+1) = (((Velocity(iSegment+1)*1000)/3600)^2)/(Radius(iSegment+1)*Gravity);
@@ -185,8 +185,8 @@ for iSegment = 2: numSegments-1
         
         RLTractionLimit = RLNormalLoad*Gravity*CoFRoad;    % Unit = N
         RRTractionLimit = RRNormalLoad*Gravity*CoFRoad;    % Unit = N
-        RLGroundTorque(iSegment) = RLTractionLimit*WheelRadius/1000;  % Unit = Nm
-        RRGroundTorque(iSegment) = RRTractionLimit*WheelRadius/1000;  % Unit = Nm
+        RLGroundTorque(iSegment) = RLTractionLimit*TireRadius;  % Unit = Nm
+        RRGroundTorque(iSegment) = RRTractionLimit*TireRadius;  % Unit = Nm
         
     else % Acceleration
         % Calculate Segment Time and Remaining Shift Time
@@ -283,8 +283,8 @@ for iSegment = 2: numSegments-1
        
         RLTractionLimit = RLNormalLoad*Gravity*CoFRoad;    % Unit = N
         RRTractionLimit = RRNormalLoad*Gravity*CoFRoad;    % Unit = N
-        RLGroundTorque(iSegment) = RLTractionLimit*WheelRadius/1000;  % Unit = Nm
-        RRGroundTorque(iSegment) = RRTractionLimit*WheelRadius/1000;  % Unit = Nm
+        RLGroundTorque(iSegment) = RLTractionLimit*TireRadius;  % Unit = Nm
+        RRGroundTorque(iSegment) = RRTractionLimit*TireRadius;  % Unit = Nm
     end
     
     AccumulatedTime(iSegment)= AccumulatedTime(iSegment-1)+SegmentTime(iSegment);
@@ -400,8 +400,8 @@ else %Acceleration
     
     RLTractionLimit = RLNormalLoad*Gravity*CoFRoad;    % Unit = N
     RRTractionLimit = RRNormalLoad*Gravity*CoFRoad;    % Unit = N
-    RLGroundTorque(iSegment) = RLTractionLimit*WheelRadius/1000;  % Unit = Nm
-    RRGroundTorque(iSegment) = RRTractionLimit*WheelRadius/1000;  % Unit = Nm
+    RLGroundTorque(iSegment) = RLTractionLimit*TireRadius;  % Unit = Nm
+    RRGroundTorque(iSegment) = RRTractionLimit*TireRadius;  % Unit = Nm
 end
 
 AccumulatedTime(numSegments)= AccumulatedTime(numSegments-1)+SegmentTime(numSegments);
